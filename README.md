@@ -44,7 +44,7 @@ The AI-Generated Quiz System automates quiz creation and management from user-up
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/sreemurali/AI-Quiz-Test.git
+   git clone https://github.com/sreemurali1/AI-Quiz-Test.git
    ```
    
 2. **Navigate to the Project Directory**:
