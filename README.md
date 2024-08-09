@@ -76,6 +76,10 @@ The AI-Generated Quiz System automates quiz creation and management from user-up
 3. **Take the Quiz**: Answer the questions in the interactive interface.
 4. **Review Feedback**: Get immediate feedback with explanations for each question.
 
+## Demo
+
+https://github.com/user-attachments/assets/53c91016-6860-4952-bae0-d309e53abf2b
+
 ## Contributing
 
 Contributions are welcome! Please fork the repository and create a pull request with your changes.
@@ -85,3 +89,5 @@ Contributions are welcome! Please fork the repository and create a pull request 
 This project is licensed under the MIT License. See the `LICENSE` file for more details.
 
 ---
+
+
