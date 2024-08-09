@@ -104,7 +104,7 @@ def vector_store(text_chunks, collection_name):
                 # Try creating the collection again
                 client.create_collection(
                     collection_name=collection_name,
-                    vectors_config={"size": 384, "distance": "Cosine"}  # Adjust vector size and distance metric
+                    vectors_config={"size": 384, "distance": "Cosine"}  # Adjust vector size and distance metric based on embedding models
                 )
                 logger.info(f"Created new collection after deletion: {collection_name}")
             else:
@@ -288,7 +288,7 @@ with tab2:
             with st.spinner('Generating quiz...'):
                 try:
                     # Set the collection name globally
-                    collection_name = f"{uploaded_file.name.split('.')[0]}_{str(uuid.uuid4())}"
+                    collection_name = uploaded_file.name.split('.')[0]
                     
                     # Read the uploaded PDF file
                     document = uploaded_file.read()
