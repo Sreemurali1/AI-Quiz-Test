@@ -63,6 +63,7 @@ The AI-Generated Quiz System automates quiz creation and management from user-up
      docker build -t AI-Quiz-Test .
      docker run -p 8501:8501 AI-Quiz-Test
      ```
+   - OR
 
 5. **Run the Application**:
    ```bash
