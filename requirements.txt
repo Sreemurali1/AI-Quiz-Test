@@ -1,0 +1,11 @@
+streamlit
+google-generativeai
+python-dotenv
+PyPDF2
+langchain-cohere
+langchain
+qdrant-client
+langchain-google-genai
+langchain-qdrant
+fastapi
+pymongo
