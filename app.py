@@ -11,7 +11,6 @@ from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from pymongo.mongo_client import MongoClient
 import streamlit as st
-import json
 from bson import ObjectId
 
 # Load environment variables
@@ -22,21 +21,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Check for API Keys
-if not os.getenv("GOOGLE_API_KEY"):
-    logger.error("Google API Key is not set.")
-    raise ValueError("Google API key is not set.")
-if not os.getenv('COHERE_API_KEY'):
-    logger.error("Cohere API Key is not set.")
-    raise ValueError("Cohere API Key is not set.")
-if not os.getenv('QDRANT_URL'):
-    logger.error("QDRANT URL is not set.")
-    raise ValueError("QDRANT URL is not set.")
-if not os.getenv('MONGO_URI'):
-    logger.error("MONGO_URI is not set.")
-    raise ValueError("MONGO_URI is not set.")
-if not os.getenv('QDRANT_API_KEY'):
-    logger.error("QDRANT API KEY is not set.")
-    raise ValueError("QDRANT API KEY is not set.")
+for key in ["GOOGLE_API_KEY", "COHERE_API_KEY", "QDRANT_URL", "MONGO_URI", "QDRANT_API_KEY"]:
+    if not os.getenv(key):
+        logger.error(f"{key} is not set.")
+        raise ValueError(f"{key} is not set.")
 
 # API Key and URL
 cohere_api_key = os.getenv("COHERE_API_KEY")
@@ -59,9 +47,9 @@ def conversational_chain():
        - **Question**: [Question text]
        - **Options**:
          -  "A: Option A"
-         -  "B: "Option B"
-         -  "C: "Option C"
-         -  "D: "Option D"
+         -  "B: Option B"
+         -  "C: Option C"
+         -  "D: Option D"
        - **Answer**: [Correct option]
        - **Explanation**: 100-word explanation of the answer.
     6. **Put a same json for all documents.
@@ -70,9 +58,7 @@ def conversational_chain():
     9. **Coverage**: Cover different sections relevant to the user query.
     10. **Number of Questions**: generate MCQs based on user input: {no_of_questions}
    
-     Generate a quiz based on the following document and user query, and format the output as JSON:
-
-    
+    Generate a quiz based on the following document and user query, and format the output as JSON:
 
     **context:**
     {context}
@@ -87,7 +73,7 @@ def conversational_chain():
     return chain
 
 # Initialize Qdrant Client
-client = QdrantClient(url=qdrant_url,api_key=qdrant_api_key)
+client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
 
 # Initialize the Cohere Embedding
 cohere_embeddings = CohereEmbeddings(cohere_api_key=cohere_api_key, model="embed-english-light-v3.0")
@@ -217,8 +203,7 @@ def generate_quiz(document, user_query, no_of_questions):
 def store_quiz_in_mongodb(quiz, user_query):
     try:
         # Global MongoDB Client Initialization
-        mongo_uri = mongodb_uri
-        mongo_client = MongoClient(mongo_uri)
+        mongo_client = MongoClient(mongodb_uri)
 
         db = mongo_client["quiz_database"]
         collection = db["quizzes"]
@@ -234,8 +219,7 @@ def store_quiz_in_mongodb(quiz, user_query):
 
 def retrieve_quiz_from_mongodb(quiz_id):
     try:
-        mongo_uri = mongodb_uri
-        mongo_client = MongoClient(mongo_uri)
+        mongo_client = MongoClient(mongodb_uri)
         db = mongo_client["quiz_database"]
         collection = db["quizzes"]
 
@@ -252,45 +236,18 @@ def retrieve_quiz_from_mongodb(quiz_id):
         if quiz_document and isinstance(quiz_document, dict):
             if "quiz" in quiz_document and "output_text" in quiz_document["quiz"]:
                 output_text = quiz_document["quiz"]["output_text"]
-
-                # Log the output_text to debug its contents
-                logger.info(f"Output text before parsing: {output_text}")
-
-                try:
-                    # Remove the surrounding code block markers if they exist
-                    if output_text.startswith("```json") and output_text.endswith("```"):
-                        json_str = output_text[7:-3]
-                    else:
-                        json_str = output_text
-
-                    quiz_data = json.loads(json_str)
-                    logger.info(f"Parsed quiz data: {quiz_data}")
-                    
-                    # Check for the key in quiz_data
-                    if isinstance(quiz_data, dict):
-                        if "questions" in quiz_data:
-                            return quiz_data["questions"]
-                        elif "quiz" in quiz_data:
-                            return quiz_data["quiz"]
-                        else:
-                            logger.error("Parsed quiz data does not contain 'questions' or 'quiz' key.")
-                            raise ValueError("Parsed quiz data does not contain 'questions' or 'quiz' key.")
-                    else:
-                        logger.error("Parsed quiz data is not a dictionary.")
-                        raise ValueError("Parsed quiz data is not a dictionary.")
-                    
-                except json.JSONDecodeError as e:
-                    logger.error(f"Failed to parse JSON from output_text: {e}")
-                    raise ValueError("Failed to parse JSON from output_text.")
+                logger.info(f"Quiz output_text: {output_text}")
+                return output_text
             else:
-                logger.error("Document does not contain 'quiz' field or 'output_text' key.")
-                raise ValueError("Document does not contain 'quiz' field or 'output_text' key.")
+                logger.error("Quiz document does not contain the expected structure.")
+                raise ValueError("Quiz document does not contain the expected structure.")
         else:
-            logger.error(f"Quiz with ID {quiz_id} not found or invalid format.")
-            raise ValueError("Quiz not found or is in an invalid format.")
+            logger.error("Quiz document not found.")
+            raise ValueError("Quiz document not found.")
     except Exception as e:
         logger.error(f"Error retrieving quiz from MongoDB: {e}")
         raise
+
 
 
 
@@ -331,7 +288,7 @@ with tab2:
             with st.spinner('Generating quiz...'):
                 try:
                     # Set the collection name globally
-                    collection_name = uploaded_file.name.split('.')[0]
+                    collection_name = f"{uploaded_file.name.split('.')[0]}_{str(uuid.uuid4())}"
                     
                     # Read the uploaded PDF file
                     document = uploaded_file.read()
